@@ -2,7 +2,7 @@ package com.svalero.multidescarga;
 
 import java.io.IOException;
 
-import com.svalero.multidescarga.controller.Controller;
+import com.svalero.multidescarga.controller.AppController;
 import com.svalero.multidescarga.util.R;
 
 import javafx.application.Application;
@@ -20,8 +20,9 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader loader = new FXMLLoader();
+        
         loader.setLocation(R.getUI("main-view.fxml"));
-        loader.setController(new Controller());
+        loader.setController(new AppController());
         ScrollPane scrollPane = loader.load();
         
         Scene scene = new Scene(scrollPane);
