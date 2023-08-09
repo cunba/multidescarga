@@ -6,9 +6,8 @@ import java.io.FileOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-//Quitar comentarios para visualizar tiempo con Libería Estándar de Java
-//import java.time.Duration;
-//import java.time.Instant;
+import java.time.Duration;
+import java.time.Instant;
 
 import javafx.concurrent.Task;
 
@@ -38,35 +37,22 @@ public class DownloadTask extends Task<String> {
         int bytesRead;
         int totalRead = 0;
         double downloadProgress = 0;
-        // Quitar comentarios para visualizar tiempo con Libería Estándar de Java
-        /*
-         * Instant start = Instant.now();
-         * Instant current;
-         * float elapsedTime;
-         */
 
-        // Quitar comentarios para visualizar tiempo con Libería de Apache Commons
-        /*
-         * StopWatch watch = new StopWatch();
-         * watch.start();
-         */
+        // Quitar comentarios para visualizar tiempo con Libería Estándar de Java
+        Instant start = Instant.now();
+        Instant current;
+        float elapsedTime;
 
         while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
             downloadProgress = Math.round(((double) totalRead / fileSize) * 100);
 
             updateProgress(downloadProgress, 100);
-            updateMessage(Math.round(downloadProgress * 100) + "%");
 
             // Quitar comentarios para visualizar tiempo con Libería Estándar de Java
-            /*
-             * current = Instant.now();
-             * elapsedTime = Duration.between(start, current).toSeconds();
-             * updateMessage(Math.round(downloadProgress * 100) + " %\t\t\t\t" +
-             * Math.round(elapsedTime) + "sec.");
-             */
-            // Quitar comentarios para visualizar tiempo con Libería de Apache Commons
-            // updateMessage(Math.round(downloadProgress * 100) + " %\t\t\t\t" +
-            // Math.round(watch.getTime()/1000)+ " sec.");
+
+            current = Instant.now();
+            elapsedTime = Duration.between(start, current).toSeconds();
+            updateMessage(Math.round(elapsedTime) + " sec.");
 
             // Comentar para acelerar la descarga.
             Thread.sleep(1);
@@ -80,7 +66,7 @@ public class DownloadTask extends Task<String> {
         }
 
         updateProgress(100, 100);
-        updateMessage("100 %");
+        // updateMessage(Math.round(elapsedTime) + " sec.");
 
         return null;
     }

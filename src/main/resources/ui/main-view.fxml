@@ -37,7 +37,7 @@
                       <TableColumn fx:id="tcProgress" editable="false" minWidth="0.0" prefWidth="122.6666259765625" text="Progreso" />
                         <TableColumn fx:id="tcStatus" editable="false" minWidth="0.0" prefWidth="77.3333740234375" text="Estado" />
                         <TableColumn fx:id="tcSize" editable="false" minWidth="0.0" prefWidth="76.00003051757812" text="Tamaño" />
-                        <TableColumn prefWidth="62.0" text="Tiempo" />
+                        <TableColumn fx:id="tcTime" prefWidth="62.0" text="Tiempo" />
                         <TableColumn fx:id="tcStop" editable="false" minWidth="0.0" prefWidth="69.33331298828125" />
                     </columns>
                   </TableView>

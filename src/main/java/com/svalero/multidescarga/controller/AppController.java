@@ -15,7 +15,6 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -37,6 +36,8 @@ public class AppController implements Initializable {
     @FXML
     private TableColumn<Map, String> tcSize;
     @FXML
+    private TableColumn<Map, String> tcTime;
+    @FXML
     private TableColumn<Map, Object> tcStop;
     @FXML
     private TableView<Map<String, Object>> tvDownloads;
@@ -56,6 +57,7 @@ public class AppController implements Initializable {
         tcProgress.setCellValueFactory(new MapValueFactory<>("progress"));
         tcStatus.setCellValueFactory(new MapValueFactory<>("status"));
         tcSize.setCellValueFactory(new MapValueFactory<>("size"));
+        tcTime.setCellValueFactory(new MapValueFactory<>("time"));
         tcStop.setCellValueFactory(new MapValueFactory<>("stop"));
 
         tvDownloads.setItems(items);
@@ -79,23 +81,36 @@ public class AppController implements Initializable {
             progressBar.progressProperty().unbind();
             progressBar.progressProperty().bind(downloadTask.progressProperty());
 
+            Label lbStatus = new Label("Descargando");
             downloadTask.stateProperty().addListener((observableValue, oldState,
                     newState) -> {
-                System.out.println(observableValue.toString());
                 if (newState == Worker.State.SUCCEEDED) {
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setContentText("La descarga ha terminado");
-                    alert.show();
+                    lbStatus.setText("Completado");
                 }
             });
 
-            Label lbStatus = new Label("Descargando");
             Label lbProgressText = new Label("0 %");
-            Label lbSize = new Label(downloadTask.valueProperty().getValue());
             downloadTask.progressProperty()
-                    .addListener((observableValue, oldValue, newValue) -> lbProgressText.setText(newValue + "%"));
+                    .addListener((observableValue, oldValue, newValue) -> lbProgressText
+                            .setText(Math.round(newValue.floatValue()) * 100 + "%"));
+
+            Label lbSize = new Label("");
+            downloadTask.valueProperty()
+                    .addListener((observableValue, oldValue, newValue) -> {
+                        lbSize.setText(newValue);
+                        System.out.println("observableValue " + observableValue);
+                        System.out.println("oldValue " + oldValue);
+                        System.out.println("newValue " + newValue);
+                    });
+
+            // Label lbSize = new Label(downloadTask.valueProperty().getValue());
+            // System.out.println("Esta es el get " + downloadTask.valueProperty().get());
+            // System.out.println("Este es el getValue " +
+            // downloadTask.valueProperty().getValue());
+
+            Label lbTime = new Label("0 %");
             downloadTask.messageProperty()
-                    .addListener((observableValue, oldValue, newValue) -> lbStatus.setText(newValue));
+                    .addListener((observableValue, oldValue, newValue) -> lbTime.setText(newValue));
 
             // Timer para iniciar descarga
             new java.util.Timer().schedule(
@@ -107,7 +122,7 @@ public class AppController implements Initializable {
                     },
                     1000 * this.timeout);
 
-            createNewRow(fileName, progressBar, lbProgressText, lbStatus, lbSize);
+            createNewRow(fileName, progressBar, lbProgressText, lbStatus, lbSize, lbTime);
 
         } catch (MalformedURLException murle) {
             murle.printStackTrace();
@@ -117,7 +132,8 @@ public class AppController implements Initializable {
         }
     }
 
-    private void createNewRow(String name, ProgressBar progressBar, Label progressText, Label status, Label size) {
+    private void createNewRow(String name, ProgressBar progressBar, Label progressText, Label status, Label size,
+            Label time) {
         Map<String, Object> item = new HashMap<>();
 
         HBox progress = new HBox(progressBar, progressText);
@@ -128,10 +144,10 @@ public class AppController implements Initializable {
         item.put("progress", progress);
         item.put("status", status);
         item.put("size", size);
+        item.put("time", time);
         item.put("stop", btStop);
 
         items.add(item);
-        // tvDownloads.getItems().addAll(items);
     }
 
 }
