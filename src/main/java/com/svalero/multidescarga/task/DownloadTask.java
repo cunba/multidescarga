@@ -27,9 +27,8 @@ public class DownloadTask extends Task<String> {
 
         URLConnection urlConnection = url.openConnection();
         double fileSize = urlConnection.getContentLength();
-        // Quitar comentario para limitar el tamaño de la descarga.
         double megaSize = fileSize / 1048576;
-        updateValue(megaSize + "MB");
+        updateValue(Math.round(megaSize * 100) / 100 + "MB");
 
         BufferedInputStream in = new BufferedInputStream(url.openStream());
         FileOutputStream fileOutputStream = new FileOutputStream(file);
@@ -38,7 +37,6 @@ public class DownloadTask extends Task<String> {
         int totalRead = 0;
         double downloadProgress = 0;
 
-        // Quitar comentarios para visualizar tiempo con Libería Estándar de Java
         Instant start = Instant.now();
         Instant current;
         float elapsedTime;
@@ -48,11 +46,12 @@ public class DownloadTask extends Task<String> {
 
             updateProgress(downloadProgress, 100);
 
-            // Quitar comentarios para visualizar tiempo con Libería Estándar de Java
-
             current = Instant.now();
             elapsedTime = Duration.between(start, current).toSeconds();
-            updateMessage(Math.round(elapsedTime) + " sec.");
+            if (Math.round(elapsedTime) < 60)
+                updateMessage(Math.round(elapsedTime) + " sec.");
+            else
+                updateMessage(Math.round(elapsedTime / 60) + " min. " + Math.round(elapsedTime % 60) + " sec.");
 
             // Comentar para acelerar la descarga.
             Thread.sleep(1);
@@ -66,7 +65,6 @@ public class DownloadTask extends Task<String> {
         }
 
         updateProgress(100, 100);
-        // updateMessage(Math.round(elapsedTime) + " sec.");
 
         return null;
     }
