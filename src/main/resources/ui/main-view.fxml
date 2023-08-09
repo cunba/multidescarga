@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="447.0" prefWidth="683.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1">
+<ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="447.0" prefWidth="683.0" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml">
   <content>
     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="443.0" prefWidth="680.0">
          <children>
@@ -31,13 +31,14 @@
                         <Button fx:id="bDownload" mnemonicParsing="false" onAction="#onDownloadButtonClick" text="Descargar" />
                      </children>
                   </HBox>
-                  <TableView fx:id="tableView" editable="true" prefHeight="393.0" prefWidth="683.0">
+                  <TableView fx:id="tvDownloads" editable="true" prefHeight="393.0" prefWidth="683.0">
                     <columns>
                       <TableColumn fx:id="tcName" editable="false" prefWidth="265.99996960163116" text="Nombre" />
-                      <TableColumn fx:id="tcProgress" editable="false" minWidth="0.0" prefWidth="208.0" text="Progreso" />
-                        <TableColumn fx:id="tcStatus" editable="false" minWidth="0.0" prefWidth="78.0" text="Estado" />
-                        <TableColumn fx:id="tcSize" editable="false" minWidth="0.0" prefWidth="69.33331298828125" text="Tamaño" />
-                        <TableColumn fx:id="tcStop" editable="false" minWidth="0.0" prefWidth="54.6666259765625" />
+                      <TableColumn fx:id="tcProgress" editable="false" minWidth="0.0" prefWidth="122.6666259765625" text="Progreso" />
+                        <TableColumn fx:id="tcStatus" editable="false" minWidth="0.0" prefWidth="77.3333740234375" text="Estado" />
+                        <TableColumn fx:id="tcSize" editable="false" minWidth="0.0" prefWidth="76.00003051757812" text="Tamaño" />
+                        <TableColumn prefWidth="62.0" text="Tiempo" />
+                        <TableColumn fx:id="tcStop" editable="false" minWidth="0.0" prefWidth="69.33331298828125" />
                     </columns>
                   </TableView>
                </children>

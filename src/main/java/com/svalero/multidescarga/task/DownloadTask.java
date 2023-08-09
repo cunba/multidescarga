@@ -12,7 +12,7 @@ import java.net.URLConnection;
 
 import javafx.concurrent.Task;
 
-public class DownloadTask extends Task<Integer> {
+public class DownloadTask extends Task<String> {
 
     private URL url;
     private File file;
@@ -23,13 +23,14 @@ public class DownloadTask extends Task<Integer> {
     }
 
     @Override
-    protected Integer call() throws Exception {
-        updateMessage("Conectando con el servidor . . .");
+    protected String call() throws Exception {
+        updateMessage("Conectando");
 
         URLConnection urlConnection = url.openConnection();
         double fileSize = urlConnection.getContentLength();
         // Quitar comentario para limitar el tamaño de la descarga.
         double megaSize = fileSize / 1048576;
+        updateValue(megaSize + "MB");
 
         BufferedInputStream in = new BufferedInputStream(url.openStream());
         FileOutputStream fileOutputStream = new FileOutputStream(file);
@@ -51,9 +52,9 @@ public class DownloadTask extends Task<Integer> {
          */
 
         while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-            downloadProgress = ((double) totalRead / fileSize);
+            downloadProgress = Math.round(((double) totalRead / fileSize) * 100);
 
-            updateProgress(downloadProgress, 1);
+            updateProgress(downloadProgress, 100);
             updateMessage(Math.round(downloadProgress * 100) + "%");
 
             // Quitar comentarios para visualizar tiempo con Libería Estándar de Java
@@ -78,7 +79,7 @@ public class DownloadTask extends Task<Integer> {
             }
         }
 
-        updateProgress(1, 1);
+        updateProgress(100, 100);
         updateMessage("100 %");
 
         return null;

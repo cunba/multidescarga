@@ -3,8 +3,10 @@ package com.svalero.multidescarga.controller;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import com.svalero.multidescarga.task.DownloadTask;
 
@@ -12,29 +14,32 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.MapValueFactory;
+import javafx.scene.layout.HBox;
 
-public class AppController {
+public class AppController implements Initializable {
     @FXML
     private TextField tfUrl;
     @FXML
-    private TableColumn<Map<String, Object>, String> tcName;
+    private TableColumn<Map, String> tcName;
     @FXML
-    private TableColumn<Map<String, Object>, Object> tcProgress;
+    private TableColumn<Map, Object> tcProgress;
     @FXML
-    private TableColumn<Map<String, Object>, String> tcStatus;
+    private TableColumn<Map, String> tcStatus;
     @FXML
-    private TableColumn<Map<String, Object>, String> tcSize;
+    private TableColumn<Map, String> tcSize;
     @FXML
-    private TableColumn<Map<String, Object>, Object> tcStop;
+    private TableColumn<Map, Object> tcStop;
     @FXML
-    private TableView<Map<String, Object>> tableView;
+    private TableView<Map<String, Object>> tvDownloads;
 
     private DownloadTask downloadTask;
     private int timeout = 1;
@@ -42,23 +47,18 @@ public class AppController {
     private ObservableList<Map<String, Object>> items;
 
     public AppController() {
-        this.items = FXCollections.<Map<String, Object>>observableArrayList();
-        tcName = new TableColumn<>("name");
-        tcName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        tcProgress = new TableColumn<>("progress");
-        tcProgress.setCellValueFactory(new PropertyValueFactory<>("progress"));
-        tcStatus = new TableColumn<>("status");
-        tcStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
-        tcSize = new TableColumn<>("size");
-        tcSize.setCellValueFactory(new PropertyValueFactory<>("size"));
-        tcStop = new TableColumn<>("stop");
-        tcStop.setCellValueFactory(new PropertyValueFactory<>("stop"));
+        this.items = FXCollections.observableArrayList();
+    }
 
-        // tableView.getColumns().add(tcName);
-        // tableView.getColumns().add(tcProgress);
-        // tableView.getColumns().add(tcStatus);
-        // tableView.getColumns().add(tcSize);
-        // tableView.getColumns().add(tcStop);
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        tcName.setCellValueFactory(new MapValueFactory<>("name"));
+        tcProgress.setCellValueFactory(new MapValueFactory<>("progress"));
+        tcStatus.setCellValueFactory(new MapValueFactory<>("status"));
+        tcSize.setCellValueFactory(new MapValueFactory<>("size"));
+        tcStop.setCellValueFactory(new MapValueFactory<>("stop"));
+
+        tvDownloads.setItems(items);
     }
 
     @FXML
@@ -66,7 +66,7 @@ public class AppController {
         String url = tfUrl.getText();
 
         tfUrl.setText("");
-        String filename = url.substring(url.lastIndexOf("/") + 1);
+
         try {
             String fileName = url.substring(url.lastIndexOf("/") + 1);
             File file = new File(fileName);
@@ -89,7 +89,11 @@ public class AppController {
                 }
             });
 
-            Label lbStatus = new Label("In progress");
+            Label lbStatus = new Label("Descargando");
+            Label lbProgressText = new Label("0 %");
+            Label lbSize = new Label(downloadTask.valueProperty().getValue());
+            downloadTask.progressProperty()
+                    .addListener((observableValue, oldValue, newValue) -> lbProgressText.setText(newValue + "%"));
             downloadTask.messageProperty()
                     .addListener((observableValue, oldValue, newValue) -> lbStatus.setText(newValue));
 
@@ -103,7 +107,7 @@ public class AppController {
                     },
                     1000 * this.timeout);
 
-            createNewRow(fileName, progressBar, lbStatus, "0MB");
+            createNewRow(fileName, progressBar, lbProgressText, lbStatus, lbSize);
 
         } catch (MalformedURLException murle) {
             murle.printStackTrace();
@@ -113,15 +117,21 @@ public class AppController {
         }
     }
 
-    private void createNewRow(String name, ProgressBar progressBar, Label status, String size) {
+    private void createNewRow(String name, ProgressBar progressBar, Label progressText, Label status, Label size) {
         Map<String, Object> item = new HashMap<>();
+
+        HBox progress = new HBox(progressBar, progressText);
+        Button btStop = new Button("Parar");
+        btStop.setOnAction(actionEvent -> System.out.println("Ha pulsado el boton de " + name));
+
         item.put("name", name);
-        item.put("progress", progressBar);
+        item.put("progress", progress);
         item.put("status", status);
         item.put("size", size);
-        item.put("stop", "");
+        item.put("stop", btStop);
 
         items.add(item);
-        tableView.getItems().addAll(items);
+        // tvDownloads.getItems().addAll(items);
     }
+
 }
