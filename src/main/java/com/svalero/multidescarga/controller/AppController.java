@@ -89,26 +89,19 @@ public class AppController implements Initializable {
                 }
             });
 
-            Label lbProgressText = new Label("0 %");
+            Label lbProgressText = new Label("  0 %");
             downloadTask.progressProperty()
                     .addListener((observableValue, oldValue, newValue) -> lbProgressText
-                            .setText(Math.round(newValue.floatValue()) * 100 + "%"));
+                            .setText("  " + Math.round(newValue.floatValue() * 100) + "%"));
 
             Label lbSize = new Label("");
             downloadTask.valueProperty()
                     .addListener((observableValue, oldValue, newValue) -> {
-                        lbSize.setText(newValue);
-                        System.out.println("observableValue " + observableValue);
-                        System.out.println("oldValue " + oldValue);
-                        System.out.println("newValue " + newValue);
+                        if (newValue != null)
+                            lbSize.setText(newValue);
                     });
 
-            // Label lbSize = new Label(downloadTask.valueProperty().getValue());
-            // System.out.println("Esta es el get " + downloadTask.valueProperty().get());
-            // System.out.println("Este es el getValue " +
-            // downloadTask.valueProperty().getValue());
-
-            Label lbTime = new Label("0 %");
+            Label lbTime = new Label("0 sec.");
             downloadTask.messageProperty()
                     .addListener((observableValue, oldValue, newValue) -> lbTime.setText(newValue));
 
