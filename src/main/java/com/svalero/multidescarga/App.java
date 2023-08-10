@@ -20,11 +20,11 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader loader = new FXMLLoader();
-        
+
         loader.setLocation(R.getUI("main-view.fxml"));
         loader.setController(new AppController());
         ScrollPane scrollPane = loader.load();
-        
+
         Scene scene = new Scene(scrollPane);
         stage.setTitle("Downloader");
         stage.setScene(scene);
