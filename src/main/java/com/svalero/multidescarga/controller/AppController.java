@@ -28,6 +28,8 @@ public class AppController implements Initializable {
     @FXML
     private TextField tfUrl;
     @FXML
+    private TableColumn<Map, String> tcId;
+    @FXML
     private TableColumn<Map, String> tcName;
     @FXML
     private TableColumn<Map, Object> tcProgress;
@@ -44,8 +46,9 @@ public class AppController implements Initializable {
     @FXML
     private TableView<Map<String, Object>> tvDownloads;
 
-    private DownloadTask downloadTask;
+    private Map<Integer, DownloadTask> downloadTasks;
     private int timeout = 1;
+    private int id;
 
     private ObservableList<Map<String, Object>> items;
 
@@ -55,6 +58,7 @@ public class AppController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        tcId.setCellValueFactory(new MapValueFactory<>("id"));
         tcName.setCellValueFactory(new MapValueFactory<>("name"));
         tcProgress.setCellValueFactory(new MapValueFactory<>("progress"));
         tcStatus.setCellValueFactory(new MapValueFactory<>("status"));
@@ -64,6 +68,8 @@ public class AppController implements Initializable {
         tcStop.setCellValueFactory(new MapValueFactory<>("stop"));
 
         tvDownloads.setItems(items);
+        downloadTasks = new HashMap<>();
+        id = 0;
     }
 
     @FXML
@@ -77,7 +83,7 @@ public class AppController implements Initializable {
             File file = new File(fileName);
             file.createNewFile();
 
-            downloadTask = new DownloadTask(url, file);
+            DownloadTask downloadTask = new DownloadTask(url, file);
 
             Label lbProgressText = new Label("  0 %");
             downloadTask.progressProperty()
@@ -131,7 +137,8 @@ public class AppController implements Initializable {
                     lbStatus,
                     lbSize,
                     lbTime,
-                    lbVelocity);
+                    lbVelocity,
+                    downloadTask);
 
         } catch (MalformedURLException murle) {
             murle.printStackTrace();
@@ -142,13 +149,16 @@ public class AppController implements Initializable {
     }
 
     private void createNewRow(String name, ProgressBar progressBar, Label progressText, Label status, Label size,
-            Label time, Label velocity) {
+            Label time, Label velocity, DownloadTask downloadTask) {
+
         Map<String, Object> item = new HashMap<>();
 
         HBox progress = new HBox(progressBar, progressText);
         Button btStop = new Button("Parar");
-        btStop.setOnAction(actionEvent -> System.out.println("Ha pulsado el boton de " + name));
 
+        downloadTasks.put(id, downloadTask);
+
+        item.put("id", id);
         item.put("name", name);
         item.put("progress", progress);
         item.put("status", status);
@@ -158,6 +168,22 @@ public class AppController implements Initializable {
         item.put("stop", btStop);
 
         items.add(item);
+        btStop.setOnAction(actionEvent -> cancelDownload(item, btStop));
+        id++;
+    }
+
+    private void cancelDownload(Map<String, Object> item, Button btStop) {
+        DownloadTask downloadTask = downloadTasks.get(item.get("id").hashCode());
+        if (downloadTask != null) {
+            downloadTask.cancel();
+
+            btStop.setText("Borrar");
+            btStop.setOnAction(actionEvent -> {
+                downloadTask.deleteFile();
+                items.remove(item);
+            });
+        }
+
     }
 
 }
