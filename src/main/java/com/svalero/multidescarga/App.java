@@ -22,7 +22,7 @@ public class App extends Application {
         FXMLLoader loader = new FXMLLoader();
 
         loader.setLocation(R.getUI("main-view.fxml"));
-        loader.setController(new AppController());
+        loader.setController(new AppController(stage));
         ScrollPane scrollPane = loader.load();
 
         Scene scene = new Scene(scrollPane);

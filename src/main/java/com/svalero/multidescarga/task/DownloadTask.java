@@ -3,7 +3,6 @@ package com.svalero.multidescarga.task;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -16,7 +15,6 @@ public class DownloadTask extends Task<String> {
 
     private URL url;
     private File file;
-    private FileOutputStream fileOutputStream;
 
     public DownloadTask(String urlText, File file) throws MalformedURLException {
         this.url = new URL(urlText);
@@ -31,7 +29,7 @@ public class DownloadTask extends Task<String> {
         updateValue(Math.round(megaSize * 100) / 100 + " MB");
 
         BufferedInputStream in = new BufferedInputStream(url.openStream());
-        fileOutputStream = new FileOutputStream(file);
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
         byte dataBuffer[] = new byte[1024];
         int bytesRead;
         int totalRead = 0;
@@ -72,6 +70,7 @@ public class DownloadTask extends Task<String> {
             totalRead += bytesRead;
 
             if (isCancelled()) {
+                fileOutputStream.close();
                 return null;
             }
         }
@@ -79,16 +78,11 @@ public class DownloadTask extends Task<String> {
         updateProgress(100, 100);
         updateMessage(" ; ");
 
+        fileOutputStream.close();
         return null;
     }
 
     public void deleteFile() {
-        try {
-            this.fileOutputStream.close();
-            this.file.delete();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        this.file.delete();
     }
 }

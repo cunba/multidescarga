@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -16,6 +18,7 @@ import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableColumn;
@@ -23,10 +26,14 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.MapValueFactory;
 import javafx.scene.layout.HBox;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 
 public class AppController implements Initializable {
     @FXML
     private TextField tfUrl;
+    @FXML
+    private Hyperlink hlPath;
     @FXML
     private TableColumn<Map, String> tcId;
     @FXML
@@ -49,15 +56,28 @@ public class AppController implements Initializable {
     private Map<Integer, DownloadTask> downloadTasks;
     private int timeout = 1;
     private int id;
-
+    private DirectoryChooser directoryChooser;
     private ObservableList<Map<String, Object>> items;
+    private Stage stage;
 
-    public AppController() {
+    public AppController(Stage stage) {
+        this.directoryChooser = new DirectoryChooser();
         this.items = FXCollections.observableArrayList();
+        this.id = 0;
+        this.stage = stage;
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        String path = System.getProperty("user.dir") + "\\downloads";
+        try {
+            Files.createDirectories(Paths.get(path));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        directoryChooser.setInitialDirectory(new File(path));
+        hlPath.setText(path);
+
         tcId.setCellValueFactory(new MapValueFactory<>("id"));
         tcName.setCellValueFactory(new MapValueFactory<>("name"));
         tcProgress.setCellValueFactory(new MapValueFactory<>("progress"));
@@ -69,7 +89,14 @@ public class AppController implements Initializable {
 
         tvDownloads.setItems(items);
         downloadTasks = new HashMap<>();
-        id = 0;
+    }
+
+    @FXML
+    protected void onHyperlinkPathClick() {
+        File selectedDirectory = new File(hlPath.getText());
+        directoryChooser.setInitialDirectory(new File(hlPath.getText()));
+        selectedDirectory = directoryChooser.showDialog(stage);
+        hlPath.setText(selectedDirectory.getAbsolutePath());
     }
 
     @FXML
@@ -80,7 +107,7 @@ public class AppController implements Initializable {
 
         try {
             String fileName = url.substring(url.lastIndexOf("/") + 1);
-            File file = new File(fileName);
+            File file = new File(hlPath.getText() + "\\" + fileName);
             file.createNewFile();
 
             DownloadTask downloadTask = new DownloadTask(url, file);
