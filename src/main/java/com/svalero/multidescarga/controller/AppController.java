@@ -178,13 +178,12 @@ public class AppController implements Initializable {
             downloadTask.cancel();
 
             btStop.setText("Borrar");
-            btStop.setOnAction(actionEvent -> deleteDownload(item));
+            btStop.setOnAction(actionEvent -> {
+                downloadTask.deleteFile();
+                items.remove(item);
+            });
         }
 
-    }
-
-    private void deleteDownload(Map<String, Object> item) {
-        items.remove(item);
     }
 
 }
