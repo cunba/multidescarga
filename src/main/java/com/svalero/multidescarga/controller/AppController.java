@@ -168,18 +168,23 @@ public class AppController implements Initializable {
         item.put("stop", btStop);
 
         items.add(item);
-        btStop.setOnAction(actionEvent -> cancelDownload(item.get("id")));
+        btStop.setOnAction(actionEvent -> cancelDownload(item, btStop));
         id++;
     }
 
-    private void cancelDownload(Object id) {
-        DownloadTask downloadTask = downloadTasks.get(id.hashCode());
-        if (downloadTask != null)
+    private void cancelDownload(Map<String, Object> item, Button btStop) {
+        DownloadTask downloadTask = downloadTasks.get(item.get("id").hashCode());
+        if (downloadTask != null) {
             downloadTask.cancel();
+
+            btStop.setText("Borrar");
+            btStop.setOnAction(actionEvent -> deleteDownload(item));
+        }
+
     }
 
-    private void deleteDownload() {
-
+    private void deleteDownload(Map<String, Object> item) {
+        items.remove(item);
     }
 
 }
