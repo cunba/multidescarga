@@ -59,7 +59,7 @@
                         <TableColumn fx:id="tcSize" editable="false" minWidth="0.0" prefWidth="68.0" text="Tamaño" />
                         <TableColumn fx:id="tcTime" editable="false" prefWidth="96.66668701171875" text="Tiempo restante" />
                         <TableColumn fx:id="tcVelocity" editable="false" prefWidth="64.6666259765625" text="Velocidad" />
-                        <TableColumn fx:id="tcStop" editable="false" minWidth="0.0" prefWidth="74.66668701171875" />
+                        <TableColumn fx:id="tcButton" editable="false" minWidth="0.0" prefWidth="74.66668701171875" />
                     </columns>
                   </TableView>
                </children>

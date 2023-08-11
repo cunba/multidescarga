@@ -8,8 +8,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
+import com.svalero.multidescarga.data.DownloadData;
 import com.svalero.multidescarga.task.DownloadTask;
 
 import javafx.collections.FXCollections;
@@ -17,14 +19,16 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.MapValueFactory;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
@@ -35,29 +39,29 @@ public class AppController implements Initializable {
     @FXML
     private Hyperlink hlPath;
     @FXML
-    private TableColumn<Map, String> tcId;
+    private TableColumn<DownloadData, String> tcId;
     @FXML
-    private TableColumn<Map, String> tcName;
+    private TableColumn<DownloadData, String> tcName;
     @FXML
-    private TableColumn<Map, Object> tcProgress;
+    private TableColumn<DownloadData, Object> tcProgress;
     @FXML
-    private TableColumn<Map, String> tcStatus;
+    private TableColumn<DownloadData, String> tcStatus;
     @FXML
-    private TableColumn<Map, String> tcSize;
+    private TableColumn<DownloadData, String> tcSize;
     @FXML
-    private TableColumn<Map, String> tcTime;
+    private TableColumn<DownloadData, String> tcTime;
     @FXML
-    private TableColumn<Map, String> tcVelocity;
+    private TableColumn<DownloadData, String> tcVelocity;
     @FXML
-    private TableColumn<Map, Object> tcStop;
+    private TableColumn<DownloadData, Object> tcButton;
     @FXML
-    private TableView<Map<String, Object>> tvDownloads;
+    private TableView<DownloadData> tvDownloads;
 
     private Map<Integer, DownloadTask> downloadTasks;
     private int timeout = 1;
     private int id;
     private DirectoryChooser directoryChooser;
-    private ObservableList<Map<String, Object>> items;
+    private ObservableList<DownloadData> items;
     private Stage stage;
 
     public AppController(Stage stage) {
@@ -78,17 +82,29 @@ public class AppController implements Initializable {
         directoryChooser.setInitialDirectory(new File(path));
         hlPath.setText(path);
 
-        tcId.setCellValueFactory(new MapValueFactory<>("id"));
-        tcName.setCellValueFactory(new MapValueFactory<>("name"));
-        tcProgress.setCellValueFactory(new MapValueFactory<>("progress"));
-        tcStatus.setCellValueFactory(new MapValueFactory<>("status"));
-        tcSize.setCellValueFactory(new MapValueFactory<>("size"));
-        tcTime.setCellValueFactory(new MapValueFactory<>("time"));
-        tcVelocity.setCellValueFactory(new MapValueFactory<>("velocity"));
-        tcStop.setCellValueFactory(new MapValueFactory<>("stop"));
+        tcId.setCellValueFactory(new PropertyValueFactory<>("id"));
+        tcName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        tcProgress.setCellValueFactory(new PropertyValueFactory<>("progress"));
+        tcStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        tcSize.setCellValueFactory(new PropertyValueFactory<>("size"));
+        tcTime.setCellValueFactory(new PropertyValueFactory<>("time"));
+        tcVelocity.setCellValueFactory(new PropertyValueFactory<>("velocity"));
+        tcButton.setCellValueFactory(new PropertyValueFactory<>("button"));
 
         tvDownloads.setItems(items);
         downloadTasks = new HashMap<>();
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                "Al cerrar la aplicación se pararán todas las descargas en curso");
+        stage.setOnCloseRequest((t) -> {
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.get() == ButtonType.OK) {
+                downloadTasks.forEach((id, downloadTask) -> downloadTask.cancel());
+                stage.close();
+            } else {
+                t.consume();
+            }
+        });
     }
 
     @FXML
@@ -169,7 +185,7 @@ public class AppController implements Initializable {
         progressBar.progressProperty().unbind();
         progressBar.progressProperty().bind(downloadTask.progressProperty());
 
-        Button btStop = new Button("Parar");
+        Button btButton = new Button("Parar");
 
         Label lbStatus = new Label("Conectando");
         downloadTask.stateProperty().addListener((observableValue, oldState,
@@ -186,13 +202,15 @@ public class AppController implements Initializable {
             if (newState == Worker.State.SUCCEEDED || newState == Worker.State.CANCELLED
                     || newState == Worker.State.FAILED) {
 
-                btStop.setText("Eliminar");
-                btStop.setOnAction(actionEvent -> {
-                    downloadTasks.forEach((id, v) -> {
-                        if (v == downloadTask)
-                            items.removeIf(value -> value.get("id") == id);
-                    });
+                btButton.setText("Eliminar");
+                btButton.setOnAction(actionEvent -> {
                     downloadTask.deleteFile();
+                    downloadTasks.forEach((id, v) -> {
+                        if (v == downloadTask) {
+                            items.removeIf(value -> value.getId() == id);
+                            downloadTasks.remove(id);
+                        }
+                    });
                 });
             }
         });
@@ -201,18 +219,18 @@ public class AppController implements Initializable {
 
         downloadTasks.put(id, downloadTask);
 
-        Map<String, Object> item = new HashMap<>();
-        item.put("id", id);
-        item.put("name", name);
-        item.put("progress", progress);
-        item.put("status", lbStatus);
-        item.put("size", lbSize);
-        item.put("time", lbTime);
-        item.put("velocity", lbVelocity);
-        item.put("stop", btStop);
+        DownloadData newDownload = new DownloadData(
+                id,
+                name,
+                progress,
+                lbStatus,
+                lbSize,
+                lbTime,
+                lbVelocity,
+                btButton);
 
-        items.add(item);
-        btStop.setOnAction(actionEvent -> downloadTask.cancel());
+        items.add(newDownload);
+        btButton.setOnAction(actionEvent -> downloadTask.cancel());
         id++;
     }
 
@@ -220,7 +238,7 @@ public class AppController implements Initializable {
     protected void onCleanTableButtonClick() {
         downloadTasks.forEach((id, downloadTask) -> {
             if (!downloadTask.isRunning()) {
-                items.removeIf(value -> value.get("id") == id);
+                items.removeIf(value -> value.getId() == id);
             }
         });
     }
