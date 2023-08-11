@@ -8,7 +8,7 @@ import com.svalero.multidescarga.util.R;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 
 public class App extends Application {
@@ -23,9 +23,9 @@ public class App extends Application {
 
         loader.setLocation(R.getUI("main-view.fxml"));
         loader.setController(new AppController(stage));
-        ScrollPane scrollPane = loader.load();
+        TabPane tabPane = loader.load();
 
-        Scene scene = new Scene(scrollPane);
+        Scene scene = new Scene(tabPane);
         stage.setTitle("Downloader");
         stage.setScene(scene);
         stage.show();
