@@ -1,11 +1,16 @@
 package com.svalero.multidescarga.controller;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -63,50 +68,69 @@ public class DownloadsController implements Initializable {
     private DirectoryChooser directoryChooser;
     private ObservableList<DownloadData> items;
     private Stage stage;
+    private FileWriter fw;
+    private BufferedWriter writer;
+    private RecordController recordController;
 
-    public DownloadsController(Stage stage) {
+    public DownloadsController(Stage stage, RecordController recordController) {
         this.directoryChooser = new DirectoryChooser();
         this.items = FXCollections.observableArrayList();
         this.id = 0;
         this.stage = stage;
+        this.recordController = recordController;
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        String path = System.getProperty("user.dir") + "\\downloads";
         try {
+            fw = new FileWriter("downloadsRecord.log", true);
+            writer = new BufferedWriter(fw);
+            String path = System.getProperty("user.dir") + "\\downloads";
             Files.createDirectories(Paths.get(path));
+            directoryChooser.setInitialDirectory(new File(path));
+            hlPath.setText(path);
+
+            tcId.setCellValueFactory(new PropertyValueFactory<>("id"));
+            tcName.setCellValueFactory(new PropertyValueFactory<>("name"));
+            tcProgress.setCellValueFactory(new PropertyValueFactory<>("progress"));
+            tcStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+            tcSize.setCellValueFactory(new PropertyValueFactory<>("size"));
+            tcTime.setCellValueFactory(new PropertyValueFactory<>("time"));
+            tcVelocity.setCellValueFactory(new PropertyValueFactory<>("velocity"));
+            tcButton.setCellValueFactory(new PropertyValueFactory<>("button"));
+
+            tvDownloads.setItems(items);
+            downloadTasks = new HashMap<>();
+
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                    "Al cerrar la aplicación se pararán todas las descargas en curso");
+            stage.setOnCloseRequest((t) -> {
+                if (!downloadTasks.isEmpty()) {
+                    Optional<ButtonType> result = alert.showAndWait();
+                    if (result.get() == ButtonType.OK) {
+                        downloadTasks.forEach((id, downloadTask) -> {
+                            downloadTask.cancel();
+                            try {
+                                recordController.closeReader();
+                                writer.close();
+                                fw.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+                        stage.close();
+                    } else {
+                        t.consume();
+                    }
+                }
+            });
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        directoryChooser.setInitialDirectory(new File(path));
-        hlPath.setText(path);
-
-        tcId.setCellValueFactory(new PropertyValueFactory<>("id"));
-        tcName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        tcProgress.setCellValueFactory(new PropertyValueFactory<>("progress"));
-        tcStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
-        tcSize.setCellValueFactory(new PropertyValueFactory<>("size"));
-        tcTime.setCellValueFactory(new PropertyValueFactory<>("time"));
-        tcVelocity.setCellValueFactory(new PropertyValueFactory<>("velocity"));
-        tcButton.setCellValueFactory(new PropertyValueFactory<>("button"));
-
-        tvDownloads.setItems(items);
-        downloadTasks = new HashMap<>();
-
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
-                "Al cerrar la aplicación se pararán todas las descargas en curso");
-        stage.setOnCloseRequest((t) -> {
-            if (!downloadTasks.isEmpty()) {
-                Optional<ButtonType> result = alert.showAndWait();
-                if (result.get() == ButtonType.OK) {
-                    downloadTasks.forEach((id, downloadTask) -> downloadTask.cancel());
-                    stage.close();
-                } else {
-                    t.consume();
-                }
-            }
-        });
     }
 
     @FXML
@@ -176,11 +200,19 @@ public class DownloadsController implements Initializable {
 
         Label lbTime = new Label("0 sec.");
         Label lbVelocity = new Label("");
+        Label totalTime = new Label("");
+        Label downloadSize = new Label("");
         downloadTask.messageProperty()
                 .addListener((observableValue, oldValue, newValue) -> {
                     String[] newValueArray = newValue.split(";");
-                    lbVelocity.setText(newValueArray[0]);
-                    lbTime.setText(newValueArray[1]);
+                    try {
+                        lbVelocity.setText(newValueArray[0]);
+                        totalTime.setText(newValueArray[1]);
+                        lbTime.setText(newValueArray[2]);
+                        downloadSize.setText(newValueArray[3]);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 });
 
         ProgressBar progressBar = new ProgressBar(0);
@@ -203,6 +235,19 @@ public class DownloadsController implements Initializable {
 
             if (newState == Worker.State.SUCCEEDED || newState == Worker.State.CANCELLED
                     || newState == Worker.State.FAILED) {
+
+                try {
+                    writer.write(
+                            new Date().toString() + ";" +
+                                    name + ";" +
+                                    lbStatus.getText() + ";" +
+                                    downloadSize.getText() + ";" +
+                                    totalTime.getText() + "\n");
+                    writer.flush();
+                    recordController.addNewDownload();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 btButton.setText("Eliminar");
                 btButton.setOnAction(actionEvent -> {

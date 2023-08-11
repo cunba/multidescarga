@@ -23,6 +23,7 @@ public class AppController implements Initializable {
     Tab tabRecord;
 
     Stage stage;
+    RecordController recordController;
 
     public AppController(Stage stage) {
         this.stage = stage;
@@ -34,11 +35,12 @@ public class AppController implements Initializable {
         FXMLLoader loaderDownloads = new FXMLLoader();
         FXMLLoader loaderRecord = new FXMLLoader();
 
+        recordController = new RecordController();
         loaderDownloads.setLocation(R.getUI("downloads-view.fxml"));
-        loaderDownloads.setController(new DownloadsController(stage));
+        loaderDownloads.setController(new DownloadsController(stage, recordController));
 
         loaderRecord.setLocation(R.getUI("record-view.fxml"));
-        loaderRecord.setController(new RecordController());
+        loaderRecord.setController(recordController);
 
         if (tabSelected == tabDownloads)
             try {
@@ -47,7 +49,6 @@ public class AppController implements Initializable {
                 ScrollPane record = loaderRecord.load();
                 tabRecord.setContent(record);
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         else
@@ -57,9 +58,7 @@ public class AppController implements Initializable {
                 ScrollPane downloads = loaderDownloads.load();
                 tabDownloads.setContent(downloads);
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
     }
-
 }

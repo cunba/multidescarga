@@ -40,6 +40,7 @@ public class DownloadTask extends Task<String> {
         float elapsedTime;
         float velocity = 0;
         float remainingTime;
+        String totalTime = "";
 
         while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
             downloadProgress = Math.round(((double) totalRead / fileSize) * 100);
@@ -54,14 +55,28 @@ public class DownloadTask extends Task<String> {
 
             remainingTime = Math.round((megaSize - totalRead / 1048576) / velocity);
 
-            if (remainingTime < 60)
-                updateMessage(velocity + " MB;" + remainingTime + " sec.");
-            else if (Math.round(remainingTime / 60) < 60)
-                updateMessage(velocity + " MB;" + Math.round(remainingTime / 60) + " min. "
-                        + Math.round(remainingTime % 60) + " sec.");
+            if (elapsedTime < 60)
+                totalTime = elapsedTime + " sec.";
+            else if (Math.round(elapsedTime / 60) < 60)
+                totalTime = Math.round(elapsedTime / 60) + " min. " + Math.round(elapsedTime % 60) + " sec.";
             else
-                updateMessage(velocity + " MB;" + Math.round(remainingTime / 60 / 60) + " h. "
-                        + Math.round(remainingTime / 60) + " min." + Math.round(remainingTime % 60) + " sec.");
+                totalTime = Math.round(elapsedTime / 60 / 60) + " h. " + Math.round(elapsedTime % 60 / 60)
+                        + " min. " + Math.round(elapsedTime % 60 % 60) + " sec.";
+
+            String remainingTimeString;
+            if (remainingTime < 60)
+                remainingTimeString = remainingTime + " sec.";
+            else if (Math.round(remainingTime / 60) < 60)
+                remainingTimeString = Math.round(remainingTime / 60) + " min. "
+                        + Math.round(remainingTime % 60) + " sec.";
+            else
+                remainingTimeString = Math.round(remainingTime / 60 / 60) + " h. "
+                        + Math.round(remainingTime % 60 / 60) + " min." + Math.round(remainingTime % 60 % 60)
+                        + " sec.";
+
+            updateMessage(
+                    velocity + " MB/s;" + totalTime + ";" + remainingTimeString + ";" + Math.round(totalRead / 1048576)
+                            + " MB");
 
             // Comentar para acelerar la descarga.
             // Thread.sleep(1);
@@ -76,7 +91,7 @@ public class DownloadTask extends Task<String> {
         }
 
         updateProgress(100, 100);
-        updateMessage(" ; ");
+        updateMessage(" ;" + totalTime + "; ;" + Math.round(megaSize) + " MB");
 
         fileOutputStream.close();
         return null;

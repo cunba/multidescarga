@@ -9,13 +9,13 @@
    <content>
       <Pane prefHeight="502.0" prefWidth="829.0">
          <children>
-            <TableView prefHeight="504.0" prefWidth="829.0">
+            <TableView fx:id="tvRecord" prefHeight="504.0" prefWidth="829.0">
                <columns>
-                  <TableColumn prefWidth="180.66665649414062" text="Fecha" />
-                  <TableColumn prefWidth="302.66664123535156" text="Nombre" />
-                  <TableColumn prefWidth="107.33334350585938" text="Estado" />
-                  <TableColumn prefWidth="90.6666259765625" text="Tamaño" />
-                  <TableColumn prefWidth="146.66668701171875" text="Tiempo total" />
+                  <TableColumn fx:id="tcDate" prefWidth="180.66665649414062" text="Fecha" />
+                  <TableColumn fx:id="tcName" prefWidth="302.66664123535156" text="Nombre" />
+                  <TableColumn fx:id="tcStatus" prefWidth="107.33334350585938" text="Estado" />
+                  <TableColumn fx:id="tcSize" prefWidth="102.0" text="Total descargado" />
+                  <TableColumn fx:id="tcTotalTime" prefWidth="136.0" text="Tiempo total" />
                </columns>
             </TableView>
          </children>
