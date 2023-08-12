@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.ResourceBundle;
 
@@ -24,6 +25,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -59,8 +61,13 @@ public class DownloadsFromFileController implements Initializable {
     private TableColumn<DownloadData, Object> tcButton;
     @FXML
     private TableView<DownloadData> tvDownloads;
+    @FXML
+    private TextField tfMaxDownloads;
+    @FXML
+    private CheckBox checkBox;
 
     private Map<Integer, DownloadTask> downloadTasks;
+    private Map<Integer, DownloadTask> downloadTasksWaiting;
     private int id;
     private DirectoryChooser directoryChooser;
     private FileChooser fileChooser;
@@ -104,6 +111,7 @@ public class DownloadsFromFileController implements Initializable {
 
             tvDownloads.setItems(items);
             downloadTasks = new HashMap<>();
+            downloadTasksWaiting = new HashMap<>();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -127,18 +135,34 @@ public class DownloadsFromFileController implements Initializable {
     }
 
     @FXML
+    protected void onCheckBoxClick() {
+        if (!checkBox.isSelected() && !downloadTasksWaiting.isEmpty()) {
+            downloadTasksWaiting.forEach((key, downloadTask) -> {
+                new Thread(downloadTask).start();
+                downloadTasksWaiting.remove(key);
+                downloadTasks.put(key, downloadTask);
+            });
+        }
+    }
+
+    @FXML
     protected void onDownloadButtonClick() {
         try {
             fr = new FileReader(hlPathFile.getText());
             reader = new BufferedReader(fr);
 
             String line;
+            int numDownload = 1;
             while (((line = reader.readLine()) != null) && !line.isEmpty()) {
                 String url = line;
                 String fileName = url.substring(url.lastIndexOf("/") + 1);
                 DownloadTask downloadTask = downloadUtil.downloadFile(fileName, url, hlPathDirectory.getText());
-                createNewRow(fileName, downloadTask);
+                createNewRow(fileName, downloadTask, numDownload);
+                numDownload++;
             }
+
+            fr.close();
+            reader.close();
         } catch (MalformedURLException murle) {
             murle.printStackTrace();
         } catch (IOException e) {
@@ -146,7 +170,7 @@ public class DownloadsFromFileController implements Initializable {
         }
     }
 
-    private void createNewRow(String name, DownloadTask downloadTask) {
+    private void createNewRow(String name, DownloadTask downloadTask, int numDownload) {
         DownloadData newDownload = downloadUtil.createNewRow(downloadTask, id, name);
 
         Label totalTime = new Label("");
@@ -178,6 +202,8 @@ public class DownloadsFromFileController implements Initializable {
                                     totalTime.getText() + "\n");
                     writer.flush();
                     recordController.addNewDownload();
+                    if (!downloadTasksWaiting.isEmpty())
+                        startNextDownload();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -195,10 +221,30 @@ public class DownloadsFromFileController implements Initializable {
             }
         });
 
-        downloadTasks.put(id, downloadTask);
+        if (!checkBox.isSelected()
+                || (checkBox.isSelected() && numDownload <= Integer.parseInt(tfMaxDownloads.getText())
+                        && downloadTasksWaiting.isEmpty())) {
+
+            new Thread(downloadTask).start();
+            downloadTasks.put(id, downloadTask);
+        } else {
+            downloadTasksWaiting.put(id, downloadTask);
+        }
+
         items.add(newDownload);
         newDownload.getButton().setOnAction(actionEvent -> downloadTask.cancel());
         id++;
+    }
+
+    private void startNextDownload() {
+        Iterator it = downloadTasksWaiting.keySet().iterator();
+        if (it.hasNext()) {
+            Integer key = (Integer) it.next();
+            DownloadTask downloadTask = downloadTasksWaiting.get(key);
+            new Thread(downloadTask).start();
+            downloadTasksWaiting.remove(key);
+            downloadTasks.put(key, downloadTask);
+        }
     }
 
     @FXML
@@ -217,6 +263,8 @@ public class DownloadsFromFileController implements Initializable {
                 downloadTask.cancel();
                 try {
                     recordController.closeReader();
+                    reader.close();
+                    fr.close();
                     writer.close();
                     fw.close();
                 } catch (IOException e) {
