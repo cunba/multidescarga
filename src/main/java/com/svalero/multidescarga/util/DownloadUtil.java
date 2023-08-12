@@ -14,7 +14,8 @@ import javafx.scene.layout.HBox;
 
 public class DownloadUtil {
 
-    public DownloadTask downloadFile(String fileName, String url, String directory) throws IOException {
+    public DownloadTask downloadFile(String fileName, String url, String directory)
+            throws IOException {
         File file = new File(directory + "\\" + fileName);
 
         if (file.exists()) {
@@ -34,16 +35,6 @@ public class DownloadUtil {
 
         DownloadTask downloadTask;
         downloadTask = new DownloadTask(url, file);
-
-        // Timer para iniciar descarga
-        new java.util.Timer().schedule(
-                new java.util.TimerTask() {
-                    @Override
-                    public void run() {
-                        new Thread(downloadTask).start();
-                    }
-                },
-                1000 * 1);
 
         return downloadTask;
     }

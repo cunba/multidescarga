@@ -117,6 +117,7 @@ public class DownloadsController implements Initializable {
             String fileName = url.substring(url.lastIndexOf("/") + 1);
             DownloadTask downloadTask = downloadUtil.downloadFile(fileName, url, hlPath.getText());
             createNewRow(fileName, downloadTask);
+            new Thread(downloadTask).start();
         } catch (MalformedURLException murle) {
             murle.printStackTrace();
         } catch (IOException e) {
