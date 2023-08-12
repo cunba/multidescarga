@@ -54,7 +54,6 @@ public class RecordController implements Initializable {
 
             String line;
             while (((line = reader.readLine()) != null) && !line.isEmpty()) {
-                System.out.println(line);
                 String[] rowParameters = line.split(";");
                 RecordDownloadData rdd = new RecordDownloadData(
                         rowParameters[0],

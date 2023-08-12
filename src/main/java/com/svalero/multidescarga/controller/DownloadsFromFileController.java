@@ -1,7 +1,9 @@
 package com.svalero.multidescarga.controller;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -29,13 +31,16 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-public class DownloadsController implements Initializable {
+public class DownloadsFromFileController implements Initializable {
     @FXML
     private TextField tfUrl;
     @FXML
-    private Hyperlink hlPath;
+    private Hyperlink hlPathFile;
+    @FXML
+    private Hyperlink hlPathDirectory;
     @FXML
     private TableColumn<DownloadData, String> tcId;
     @FXML
@@ -58,15 +63,19 @@ public class DownloadsController implements Initializable {
     private Map<Integer, DownloadTask> downloadTasks;
     private int id;
     private DirectoryChooser directoryChooser;
+    private FileChooser fileChooser;
     private ObservableList<DownloadData> items;
     private Stage stage;
     private FileWriter fw;
+    private FileReader fr;
     private BufferedWriter writer;
+    private BufferedReader reader;
     private RecordController recordController;
     private DownloadUtil downloadUtil;
 
-    public DownloadsController(Stage stage, RecordController recordController) {
+    public DownloadsFromFileController(Stage stage, RecordController recordController) {
         this.directoryChooser = new DirectoryChooser();
+        this.fileChooser = new FileChooser();
         this.items = FXCollections.observableArrayList();
         this.id = 0;
         this.stage = stage;
@@ -82,7 +91,7 @@ public class DownloadsController implements Initializable {
             String path = System.getProperty("user.dir") + "\\downloads";
             Files.createDirectories(Paths.get(path));
             directoryChooser.setInitialDirectory(new File(path));
-            hlPath.setText(path);
+            hlPathDirectory.setText(path);
 
             tcId.setCellValueFactory(new PropertyValueFactory<>("id"));
             tcName.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -101,22 +110,35 @@ public class DownloadsController implements Initializable {
     }
 
     @FXML
-    protected void onHyperlinkPathClick() {
-        File selectedDirectory = new File(hlPath.getText());
-        directoryChooser.setInitialDirectory(new File(hlPath.getText()));
+    protected void onHyperlinkPathFileClick() {
+        File selectedDirectory = new File(hlPathDirectory.getText());
+        File selectedFile = new File(hlPathDirectory.getText());
+        fileChooser.setInitialDirectory(selectedDirectory);
+        selectedFile = fileChooser.showOpenDialog(stage);
+        hlPathFile.setText(selectedFile.getAbsolutePath());
+    }
+
+    @FXML
+    protected void onHyperlinkPathDirectoryClick() {
+        File selectedDirectory = new File(hlPathDirectory.getText());
+        directoryChooser.setInitialDirectory(selectedDirectory);
         selectedDirectory = directoryChooser.showDialog(stage);
-        hlPath.setText(selectedDirectory.getAbsolutePath());
+        hlPathDirectory.setText(selectedDirectory.getAbsolutePath());
     }
 
     @FXML
     protected void onDownloadButtonClick() {
-        String url = tfUrl.getText();
-        tfUrl.setText("");
-
         try {
-            String fileName = url.substring(url.lastIndexOf("/") + 1);
-            DownloadTask downloadTask = downloadUtil.downloadFile(fileName, url, hlPath.getText());
-            createNewRow(fileName, downloadTask);
+            fr = new FileReader(hlPathFile.getText());
+            reader = new BufferedReader(fr);
+
+            String line;
+            while (((line = reader.readLine()) != null) && !line.isEmpty()) {
+                String url = line;
+                String fileName = url.substring(url.lastIndexOf("/") + 1);
+                DownloadTask downloadTask = downloadUtil.downloadFile(fileName, url, hlPathDirectory.getText());
+                createNewRow(fileName, downloadTask);
+            }
         } catch (MalformedURLException murle) {
             murle.printStackTrace();
         } catch (IOException e) {
