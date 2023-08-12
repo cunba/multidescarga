@@ -6,6 +6,7 @@
 <TabPane fx:id="tabPane" prefHeight="532.0" prefWidth="829.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1">
    <tabs>
       <Tab fx:id="tabDownloads" closable="false" text="Descargas" />
+      <Tab fx:id="tabDownloadsFromFile" closable="false" text="Descargas desde archivo" />
       <Tab fx:id="tabRecord" closable="false" text="Historial" />
    </tabs>
 </TabPane>
