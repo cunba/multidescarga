@@ -135,6 +135,17 @@ public class DownloadsFromFileController implements Initializable {
     }
 
     @FXML
+    protected void onCheckBoxClick() {
+        if (!checkBox.isSelected() && !downloadTasksWaiting.isEmpty()) {
+            downloadTasksWaiting.forEach((key, downloadTask) -> {
+                new Thread(downloadTask).start();
+                downloadTasksWaiting.remove(key);
+                downloadTasks.put(key, downloadTask);
+            });
+        }
+    }
+
+    @FXML
     protected void onDownloadButtonClick() {
         try {
             fr = new FileReader(hlPathFile.getText());

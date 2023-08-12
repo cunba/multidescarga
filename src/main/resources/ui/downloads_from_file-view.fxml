@@ -50,7 +50,7 @@
                <children>
                   <HBox alignment="CENTER_LEFT" prefHeight="25.0" prefWidth="729.0">
                      <children>
-                        <CheckBox fx:id="checkBox" mnemonicParsing="false">
+                        <CheckBox fx:id="checkBox" mnemonicParsing="false" onAction="#onCheckBoxClick">
                            <HBox.margin>
                               <Insets right="10.0" />
                            </HBox.margin>
