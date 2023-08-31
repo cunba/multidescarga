@@ -95,7 +95,7 @@ public class DownloadsFromFileController implements Initializable {
         try {
             fw = new FileWriter("downloadsRecord.log", true);
             writer = new BufferedWriter(fw);
-            String path = System.getProperty("user.dir") + "\\downloads";
+            String path = System.getProperty("user.dir") + File.pathSeparator + "downloads";
             Files.createDirectories(Paths.get(path));
             directoryChooser.setInitialDirectory(new File(path));
             hlPathDirectory.setText(path);
@@ -155,7 +155,7 @@ public class DownloadsFromFileController implements Initializable {
             int numDownload = 1;
             while (((line = reader.readLine()) != null) && !line.isEmpty()) {
                 String url = line;
-                String fileName = url.substring(url.lastIndexOf("/") + 1);
+                String fileName = url.substring(url.lastIndexOf(File.pathSeparator) + 1);
                 DownloadTask downloadTask = downloadUtil.downloadFile(fileName, url, hlPathDirectory.getText());
                 createNewRow(fileName, downloadTask, numDownload);
                 numDownload++;
