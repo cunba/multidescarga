@@ -16,18 +16,18 @@ public class DownloadUtil {
 
     public DownloadTask downloadFile(String fileName, String url, String directory)
             throws IOException {
-        File file = new File(directory + File.pathSeparator + fileName);
+        File file = new File(directory + File.separator + fileName);
 
         if (file.exists()) {
             int i = 1;
-            String[] fileNameString = fileName.split(File.pathSeparator + ".");
+            String[] fileNameString = fileName.split(File.separator + ".");
             fileName = fileNameString[0] + " (" + i + ")." + fileNameString[1];
-            file = new File(directory + File.pathSeparator + fileName);
+            file = new File(directory + File.separator + fileName);
 
             while (file.exists()) {
                 i++;
                 fileName = fileNameString[0] + " (" + i + ")." + fileNameString[1];
-                file = new File(directory + File.pathSeparator + fileName);
+                file = new File(directory + File.separator + fileName);
             }
         }
 
